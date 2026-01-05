@@ -1,4 +1,5 @@
 Python Sales Data Cleaning (ETL Pipeline)
+
 📌 Cel projektu
 Projekt automatyzuje proces czyszczenia i transformacji danych (Preprocessing) pochodzących z surowych zrzutów systemów e-commerce/ERP. Skrypt rozwiązuje typowe problemy z jakością danych, przygotowując je do dalszej analizy lub importu do bazy danych SQL.
 
@@ -8,6 +9,7 @@ Język: Python 3.x
 Biblioteka: pandas (kluczowe narzędzie do manipulacji danymi)
 
 🔍 Zakres operacji (Data Cleaning)
+
 Skrypt realizuje kompletny mini-proces ETL:
 
 E (Extract): Automatyczne wczytywanie danych z plików CSV.
