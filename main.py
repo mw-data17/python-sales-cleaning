@@ -1,50 +1,47 @@
 import pandas as pd
-
+import os
 
 def main():
-    # 1. Wczytanie danych
-    df = pd.read_csv("data/sales.csv")
+    file_path = "data/sales.csv"
+    
+    # Sprawdzenie czy folder i plik istnieją (dobre praktyki inżynierskie)
+    if not os.path.exists(file_path):
+        print(f"Błąd: Nie znaleziono pliku {file_path}")
+        return
 
-    print("Liczba rekordów na wejściu:", len(df))
+    try:
+        # 1. Wczytanie danych
+        df = pd.read_csv(file_path)
+        print(f"Liczba rekordów na wejściu: {len(df)}")
 
-    # 2. Czyszczenie danych
-    # usunięcie zwrotów
-    df = df[df["status"] != "refunded"]
+        # 2. Czyszczenie danych (Data Cleaning)
+        df = df[df["status"] != "refunded"]
+        df = df[df["customer"].notna()]
+        df["customer"] = df["customer"].str.strip()
+        df["commission_rate"] = df["commission_rate"].fillna(0.05)
+        df = df[df["amount"] > 0]
 
-    # usunięcie brakujących klientów
-    df = df[df["customer"].notna()]
+        print(f"Liczba rekordów po czyszczeniu: {len(df)}")
 
-    # usunięcie nadmiarowych spacji w nazwach klientów
-    df["customer"] = df["customer"].str.strip()
+        # 3. Transformacja i obliczenia (Business Logic)
+        df["commission"] = round(df["amount"] * df["commission_rate"], 2)
+        df["amount_net"] = df["amount"] - df["commission"]
 
-    # uzupełnienie brakującej prowizji domyślną wartością
-    df["commission_rate"] = df["commission_rate"].fillna(0.05)
+        # 4. Zapis danych (Load)
+        os.makedirs("data", exist_ok=True) # Tworzy folder jeśli nie istnieje
+        df.to_csv("data/sales_cleaned.csv", index=False)
+        print("Plik wynikowy został zapisany w data/sales_cleaned.csv")
 
-    # usunięcie kwot <= 0
-    df = df[df["amount"] > 0]
+        # 5. Raport analityczny
+        print("-" * 30)
+        print(f"Suma sprzedaży: {df['amount'].sum():.2f}")
+        print(f"Suma prowizji:  {df['commission'].sum():.2f}")
+        print("\nTop 3 klienci wg sprzedaży:")
+        print(df.groupby("customer")["amount"].sum().nlargest(3))
+        print("-" * 30)
 
-    print("Liczba rekordów po czyszczeniu:", len(df))
-
-    # 3. Obliczenia
-    df["commission"] = df["amount"] * df["commission_rate"]
-    df["amount_net"] = df["amount"] - df["commission"]
-
-    # 4. Zapis danych
-    df.to_csv("data/sales_cleaned.csv", index=False)
-
-    # 5. Mini raport
-    print("\nSuma sprzedaży:", round(df["amount"].sum(), 2))
-    print("Suma prowizji:", round(df["commission"].sum(), 2))
-
-    print("\nTop 3 klienci wg sprzedaży:")
-    top_customers = (
-        df.groupby("customer")["amount"]
-        .sum()
-        .sort_values(ascending=False)
-        .head(3)
-    )
-    print(top_customers)
-
+    except Exception as e:
+        print(f"Wystąpił nieoczekiwany błąd: {e}")
 
 if __name__ == "__main__":
     main()
